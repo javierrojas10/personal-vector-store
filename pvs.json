@@ -1,0 +1,26 @@
+{
+  "pvs_version": "0.1",
+  "owner": {
+    "name": "Javier Rojas",
+    "role": "Software Engineer & Entrepreneur",
+    "location": "Chile"
+  },
+  "identity": {
+    "bio": "Backend engineer with Node.js, AWS, and e-commerce experience.",
+    "skills": ["Node.js", "TypeScript", "AWS", "RAG", "PrestaShop"],
+    "interests": ["AI Agents", "Startups", "E-commerce automation"]
+  },
+  "communication_style": {
+    "tone": "direct",
+    "languages": ["es", "en"],
+    "preferences": {
+      "answers": "short + rationale",
+      "code": "no comments",
+      "explanations": "always include the why"
+    }
+  },
+  "embedding": {
+    "model": "text-embedding-3-large",
+    "vector": [0.123, -0.456]
+  }
+}
