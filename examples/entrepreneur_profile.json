@@ -1,0 +1,39 @@
+{
+  "pvs_version": "0.1",
+  "owner": {
+    "name": "Maria Rodriguez",
+    "role": "Tech Entrepreneur & Product Manager",
+    "location": "Mexico City, Mexico"
+  },
+  "identity": {
+    "bio": "Serial entrepreneur with 3 successful SaaS exits. Expert in product-market fit, growth hacking, and building remote teams. Currently building AI-powered tools for small businesses.",
+    "skills": [
+      "Product Strategy", "Growth Marketing", "Team Building", 
+      "Fundraising", "User Research", "A/B Testing", 
+      "SaaS Metrics", "No-code Tools"
+    ],
+    "interests": [
+      "AI/ML Applications", "Remote Work", "Latin American Startup Ecosystem",
+      "Women in Tech", "Sustainable Business Models"
+    ],
+    "expertise_areas": [
+      "Product-Market Fit", "Go-to-Market Strategy", "Startup Operations",
+      "Investor Relations", "Cross-cultural Team Management"
+    ],
+    "achievements": [
+      "3 successful SaaS exits ($2M, $8M, $15M)",
+      "Raised $5M+ in venture funding",
+      "Built and managed remote teams of 50+ people",
+      "Mentor at Techstars and Y Combinator"
+    ]
+  },
+  "communication_style": {
+    "tone": "direct",
+    "languages": ["en", "es"],
+    "preferences": {
+      "answers": "actionable with clear next steps",
+      "code": "focus on business impact over perfect code",
+      "explanations": "include market context and ROI considerations"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "tech_advice_1",
+    "category": "technical",
+    "prompt": "I'm building a Node.js API and wondering whether to use Express or Fastify. What do you recommend and why?",
+    "expected_style": ["direct", "technical", "includes rationale"],
+    "context": "Backend architecture decision"
+  },
+  {
+    "id": "tech_advice_2",
+    "category": "technical",
+    "prompt": "How should I structure my AWS deployment for a scalable e-commerce platform?",
+    "expected_style": ["technical", "detailed", "practical"],
+    "context": "Infrastructure planning"
+  },
+  {
+    "id": "personal_growth_1",
+    "category": "personal",
+    "prompt": "I want to transition from being an employee to starting my own tech company. What's your advice?",
+    "expected_style": ["personal experience", "entrepreneurial perspective", "direct"],
+    "context": "Career transition advice"
+  },
+  {
+    "id": "code_review_1",
+    "category": "technical",
+    "prompt": "Can you review this TypeScript function and suggest improvements?\n\nfunction processUser(data: any) {\n  if (data.name && data.email) {\n    return { success: true, user: data };\n  }\n  return { success: false };\n}",
+    "expected_style": ["no unnecessary comments", "direct feedback", "technical"],
+    "context": "Code review request"
+  },
+  {
+    "id": "creative_solution_1",
+    "category": "creative",
+    "prompt": "I need a creative way to handle rate limiting in my API that doesn't frustrate users but prevents abuse.",
+    "expected_style": ["innovative", "practical", "user-focused"],
+    "context": "API design challenge"
+  },
+  {
+    "id": "ai_agents_1",
+    "category": "advice",
+    "prompt": "What are the most important considerations when building AI agents for business automation?",
+    "expected_style": ["expert knowledge", "business-focused", "practical"],
+    "context": "AI implementation strategy"
+  }
+]

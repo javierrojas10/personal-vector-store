@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Vector Store - Visualizador de Resultados de Benchmark</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .header h1 {
+            color: #1e293b;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .controls {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .file-input {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .file-input input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .category-filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .category-btn:hover {
+            background: #f8fafc;
+        }
+
+        .category-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .questions-grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .question-header {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .question-id {
+            font-weight: 600;
+            color: #3b82f6;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-category {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .question-prompt {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-context {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .responses {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        .response-column {
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .response-column:first-child {
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .response-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .pvs-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .with-pvs {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .without-pvs {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .response-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .response-content {
+            background: #fafafa;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 4rem;
+            color: #64748b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+        }
+
+        .expand-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .expand-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .response-column.expanded .response-content {
+            max-height: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 12px;
+            padding: 2rem;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+
+        .modal-close:hover {
+            background: #f1f5f9;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .responses {
+                grid-template-columns: 1fr;
+            }
+
+            .response-column:first-child {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .header-stats {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        .summary-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .summary-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-item {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .summary-item-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-item-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .questions-catalog {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .questions-catalog-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1rem;
+        }
+
+        .catalog-question {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .catalog-question-id {
+            font-weight: 600;
+            color: #3b82f6;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .catalog-question-category {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        .catalog-question-prompt {
+            font-size: 0.875rem;
+            color: #1e293b;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .catalog-question-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .catalog-meta-item {
+            font-size: 0.75rem;
+            color: #64748b;
+            background: #e2e8f0;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+        }
+
+        .toggle-catalog-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            color: #64748b;
+            margin-left: auto;
+        }
+
+        .toggle-catalog-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .scores-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .score-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .score-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .score-question-id {
+            font-weight: 600;
+            color: #3b82f6;
+            font-size: 0.875rem;
+        }
+
+        .score-improvement {
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+        }
+
+        .score-improvement.positive {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .score-improvement.negative {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .score-improvement.neutral {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .score-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .score-metric {
+            text-align: center;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .score-metric-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .score-metric-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .score-notes {
+            font-size: 0.875rem;
+            color: #475569;
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Personal Vector Store - Resultados de Benchmark</h1>
+            <p>Visualiza y compara los resultados de benchmarks entre respuestas con y sin PVS</p>
+            <div class="header-stats" id="headerStats">
+                <!-- Stats will be populated here -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="file-input">
+                <label for="jsonFile">Cargar archivo de benchmark:</label>
+                <input type="file" id="jsonFile" accept=".json">
+            </div>
+            <div class="category-filters" id="categoryFilters">
+                <!-- Filters will be populated here -->
+            </div>
+        </div>
+
+        <div id="summarySection" class="summary-section" style="display: none;">
+            <div class="summary-title">Resumen del Benchmark</div>
+            <div class="summary-grid" id="summaryGrid">
+                <!-- Summary will be populated here -->
+            </div>
+        </div>
+
+        <div id="scoresSection" class="summary-section" style="display: none;">
+            <div class="summary-title">Puntuaciones de Calidad</div>
+            <div id="scoresContent">
+                <!-- Scores will be populated here -->
+            </div>
+        </div>
+
+        <div class="questions-grid" id="questionsGrid">
+            <div class="no-data">
+                <h3>No hay datos cargados</h3>
+                <p>Selecciona un archivo JSON de benchmark para visualizar los resultados</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for expanded view -->
+    <div class="modal" id="responseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Respuesta Completa</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let benchmarkData = null;
+        let questionsData = null;
+        let currentFilter = 'all';
+        window.catalogVisible = false;
+
+        // Load questions.json on page load
+        loadQuestionsData();
+        
+        document.getElementById('jsonFile').addEventListener('change', handleFileLoad);
+
+        async function loadQuestionsData() {
+            try {
+                // Try to load questions.json from the benchmarks directory
+                const response = await fetch('./benchmarks/questions.json');
+                if (response.ok) {
+                    questionsData = await response.json();
+                    renderQuestionsCatalog();
+                } else {
+                    console.log('No se pudo cargar questions.json - esto es normal al ejecutar con protocolo file://');
+                    // Usar preguntas predefinidas para protocolo file://
+                    useHardcodedQuestions();
+                }
+            } catch (error) {
+                console.log('No se pudo cargar questions.json:', error.message);
+                // Usar preguntas predefinidas como respaldo
+                useHardcodedQuestions();
+            }
+        }
+
+        function useHardcodedQuestions() {
+            questionsData = [
+                {
+                    "id": "tech_advice_1",
+                    "category": "technical",
+                    "prompt": "I'm building a Node.js API and wondering whether to use Express or Fastify. What do you recommend and why?",
+                    "expected_style": ["direct", "technical", "includes rationale"],
+                    "context": "Decisión de arquitectura de backend"
+                },
+                {
+                    "id": "tech_advice_2",
+                    "category": "technical",
+                    "prompt": "How should I structure my AWS deployment for a scalable e-commerce platform?",
+                    "expected_style": ["technical", "detailed", "practical"],
+                    "context": "Planificación de infraestructura"
+                },
+                {
+                    "id": "personal_growth_1",
+                    "category": "personal",
+                    "prompt": "I want to transition from being an employee to starting my own tech company. What's your advice?",
+                    "expected_style": ["personal experience", "entrepreneurial perspective", "direct"],
+                    "context": "Consejo de transición profesional"
+                },
+                {
+                    "id": "code_review_1",
+                    "category": "technical",
+                    "prompt": "Can you review this TypeScript function and suggest improvements?\n\nfunction processUser(data: any) {\n  if (data.name && data.email) {\n    return { success: true, user: data };\n  }\n  return { success: false };\n}",
+                    "expected_style": ["no unnecessary comments", "direct feedback", "technical"],
+                    "context": "Solicitud de revisión de código"
+                },
+                {
+                    "id": "creative_solution_1",
+                    "category": "creative",
+                    "prompt": "I need a creative way to handle rate limiting in my API that doesn't frustrate users but prevents abuse.",
+                    "expected_style": ["innovative", "practical", "user-focused"],
+                    "context": "Desafío de diseño de API"
+                },
+                {
+                    "id": "ai_agents_1",
+                    "category": "advice",
+                    "prompt": "What are the most important considerations when building AI agents for business automation?",
+                    "expected_style": ["expert knowledge", "business-focused", "practical"],
+                    "context": "Estrategia de implementación de IA"
+                }
+            ];
+            renderQuestionsCatalog();
+        }
+
+        function handleFileLoad(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    benchmarkData = JSON.parse(e.target.result);
+                    renderBenchmark();
+                } catch (error) {
+                    alert('Error al leer el archivo JSON: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function renderBenchmark() {
+            if (!benchmarkData) return;
+
+            renderHeader();
+            renderSummary();
+            renderCategoryFilters();
+            renderQuestions();
+        }
+
+        function renderQuestionsCatalog() {
+            if (!questionsData) return;
+
+            const catalogGrid = document.getElementById('catalogGrid');
+            catalogGrid.innerHTML = questionsData.map(question => {
+                const categoryColors = {
+                    'technical': '#dbeafe',
+                    'personal': '#fce7f3',
+                    'advice': '#ecfdf5',
+                    'creative': '#fef3c7'
+                };
+
+                const categoryTextColors = {
+                    'technical': '#1e40af',
+                    'personal': '#be185d',
+                    'advice': '#166534',
+                    'creative': '#92400e'
+                };
+
+                return `
+                    <div class="catalog-question">
+                        <div class="catalog-question-id">${question.id}</div>
+                        <span class="catalog-question-category" style="background: ${categoryColors[question.category] || '#dbeafe'}; color: ${categoryTextColors[question.category] || '#1e40af'}">
+                            ${question.category}
+                        </span>
+                        <div class="catalog-question-prompt">${question.prompt}</div>
+                        <div class="catalog-question-meta">
+                            <span class="catalog-meta-item">📍 ${question.context}</span>
+                            ${question.expected_style.map(style => `<span class="catalog-meta-item">🎯 ${style}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleCatalog() {
+            window.catalogVisible = !window.catalogVisible;
+            const catalogGrid = document.getElementById('catalogGrid');
+            catalogGrid.style.display = window.catalogVisible ? 'grid' : 'none';
+        }
+
+        function renderHeader() {
+            const stats = [
+                { label: 'Suite', value: benchmarkData.suite_name },
+                { label: 'PVS Usado', value: benchmarkData.pvs_used },
+                { label: 'Preguntas', value: benchmarkData.total_questions },
+                { label: 'Proveedores', value: benchmarkData.total_providers },
+                { label: 'Tiempo Total', value: formatTime(benchmarkData.summary.execution_time_ms) },
+                { label: 'Generado', value: formatDate(benchmarkData.generated_at) }
+            ];
+
+            document.getElementById('headerStats').innerHTML = stats.map(stat => `
+                <div class="stat">
+                    <div class="stat-number">${stat.value}</div>
+                    <div class="stat-label">${stat.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderSummary() {
+            const summary = benchmarkData.summary;
+            
+            const summaryItems = [
+                { label: 'Mejora Promedio', value: `${summary.avg_improvement.toFixed(1)}%` },
+                { label: 'Mejor Proveedor', value: summary.best_provider },
+                { label: 'Categoría Más Mejorada', value: summary.most_improved_category },
+                { label: 'Tiempo de Ejecución', value: formatTime(summary.execution_time_ms) }
+            ];
+
+            document.getElementById('summaryGrid').innerHTML = summaryItems.map(item => `
+                <div class="summary-item">
+                    <div class="summary-item-label">${item.label}</div>
+                    <div class="summary-item-value">${item.value}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('summarySection').style.display = 'block';
+            
+            // Add scores section if scores exist
+            if (benchmarkData.scores && benchmarkData.scores.length > 0) {
+                renderScoresSection();
+            }
+        }
+
+        function renderScoresSection() {
+            const scores = benchmarkData.scores;
+            
+            document.getElementById('scoresContent').innerHTML = `
+                <div class="scores-grid">
+                    ${scores.map(score => {
+                        let improvementClass, improvementText;
+                        
+                        if (score.improvement_over_baseline > 0) {
+                            improvementClass = 'positive';
+                            improvementText = `+${score.improvement_over_baseline.toFixed(1)}%`;
+                        } else if (score.improvement_over_baseline < 0) {
+                            improvementClass = 'negative';
+                            improvementText = `${score.improvement_over_baseline.toFixed(1)}%`;
+                        } else {
+                            improvementClass = 'neutral';
+                            improvementText = `${score.improvement_over_baseline.toFixed(1)}%`;
+                        }
+                        
+                        return `
+                            <div class="score-card">
+                                <div class="score-card-header">
+                                    <div class="score-question-id">${score.question_id}</div>
+                                    <div class="score-improvement ${improvementClass}">
+                                        ${improvementText}
+                                    </div>
+                                </div>
+                                <div class="score-metrics">
+                                    <div class="score-metric">
+                                        <div class="score-metric-label">Alineación</div>
+                                        <div class="score-metric-value">${score.alignment_score}/5</div>
+                                    </div>
+                                    <div class="score-metric">
+                                        <div class="score-metric-label">Consistencia</div>
+                                        <div class="score-metric-value">${score.consistency_score}/5</div>
+                                    </div>
+                                    <div class="score-metric">
+                                        <div class="score-metric-label">Relevancia</div>
+                                        <div class="score-metric-value">${score.relevance_score}/5</div>
+                                    </div>
+                                    <div class="score-metric">
+                                        <div class="score-metric-label">Proveedor</div>
+                                        <div class="score-metric-value">${score.provider}</div>
+                                    </div>
+                                </div>
+                                ${score.notes ? `
+                                    <div class="score-notes">
+                                        <strong>Notas:</strong> ${score.notes}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            document.getElementById('scoresSection').style.display = 'block';
+        }
+
+        function renderCategoryFilters() {
+            const categories = [...new Set(getQuestions().map(q => getCategoryFromResults(q.question_id)))];
+            categories.unshift('all');
+
+            const categoryLabels = {
+                'all': 'Todas',
+                'technical': 'Técnico',
+                'personal': 'Personal', 
+                'advice': 'Consejos',
+                'creative': 'Creativo'
+            };
+
+            document.getElementById('categoryFilters').innerHTML = categories.map(cat => `
+                <button class="category-btn ${currentFilter === cat ? 'active' : ''}" 
+                        onclick="setFilter('${cat}')">
+                    ${categoryLabels[cat] || cat}
+                </button>
+            `).join('');
+        }
+
+        function setFilter(category) {
+            currentFilter = category;
+            renderCategoryFilters();
+            renderQuestions();
+        }
+
+        function renderQuestions() {
+            const questions = getQuestions();
+            const filteredQuestions = currentFilter === 'all' 
+                ? questions 
+                : questions.filter(q => getCategoryFromResults(q.question_id) === currentFilter);
+
+            if (filteredQuestions.length === 0) {
+                document.getElementById('questionsGrid').innerHTML = `
+                    <div class="no-data">
+                        <h3>No hay preguntas en esta categoría</h3>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('questionsGrid').innerHTML = filteredQuestions.map(renderQuestion).join('');
+        }
+
+        function getQuestions() {
+            const questionIds = [...new Set(benchmarkData.results.map(r => r.question_id))];
+            return questionIds.map(id => {
+                const results = benchmarkData.results.filter(r => r.question_id === id);
+                const withPvs = results.find(r => r.with_pvs);
+                const withoutPvs = results.find(r => !r.with_pvs);
+                
+                return {
+                    question_id: id,
+                    withPvs,
+                    withoutPvs
+                };
+            });
+        }
+
+        function getCategoryFromResults(questionId) {
+            // Try to get category from loaded questions data first
+            if (questionsData) {
+                const question = questionsData.find(q => q.id === questionId);
+                if (question) {
+                    return question.category;
+                }
+            }
+
+            // Fallback to pattern matching for backward compatibility
+            const categoryMap = {
+                'tech_advice': 'technical',
+                'code_review': 'technical',
+                'personal_growth': 'personal',
+                'creative_solution': 'creative',
+                'ai_agents': 'advice'
+            };
+
+            for (const [key, category] of Object.entries(categoryMap)) {
+                if (questionId.includes(key)) {
+                    return category;
+                }
+            }
+            
+            return 'technical'; // default
+        }
+
+        function renderQuestion(q) {
+            const categoryColors = {
+                'technical': '#dbeafe',
+                'personal': '#fce7f3',
+                'advice': '#ecfdf5',
+                'creative': '#fef3c7'
+            };
+
+            const categoryTextColors = {
+                'technical': '#1e40af',
+                'personal': '#be185d',
+                'advice': '#166534',
+                'creative': '#92400e'
+            };
+
+            const category = getCategoryFromResults(q.question_id);
+            
+            return `
+                <div class="question-card">
+                    <div class="question-header">
+                        <div class="question-id">${q.question_id}</div>
+                        <span class="question-category" style="background: ${categoryColors[category]}; color: ${categoryTextColors[category]}">
+                            ${category}
+                        </span>
+                        <div class="question-prompt">${getPromptFromId(q.question_id)}</div>
+                        <div class="question-context">Contexto: ${getContextFromId(q.question_id)}</div>
+                    </div>
+                    <div class="responses">
+                        ${renderResponse(q.withoutPvs, false)}
+                        ${renderResponse(q.withPvs, true)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderResponse(result, isPvs) {
+            if (!result) {
+                return `
+                    <div class="response-column">
+                        <div class="response-header">
+                            <span class="pvs-badge ${isPvs ? 'with-pvs' : 'without-pvs'}">
+                                ${isPvs ? '✓ Con PVS' : '✗ Sin PVS'}
+                            </span>
+                        </div>
+                        <div class="response-content">No hay datos disponibles</div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="response-column" id="${result.question_id}-${isPvs ? 'with' : 'without'}">
+                    <button class="expand-btn" onclick="expandResponse('${result.question_id}-${isPvs ? 'with' : 'without'}')">
+                        Expandir
+                    </button>
+                    <div class="response-header">
+                        <span class="pvs-badge ${isPvs ? 'with-pvs' : 'without-pvs'}">
+                            ${isPvs ? '✓ Con PVS' : '✗ Sin PVS'}
+                        </span>
+                        <div class="response-stats">
+                            <span>${result.response_length} chars</span>
+                            <span>${result.response_tokens || 0} tokens</span>
+                            ${result.system_prompt_tokens ? `<span>PVS: ${result.system_prompt_tokens} tokens</span>` : ''}
+                            ${result.total_input_tokens ? `<span>Total: ${result.total_input_tokens} tokens</span>` : ''}
+                            <span>${formatTime(result.response_time_ms)}</span>
+                            <span>${result.model}</span>
+                        </div>
+                    </div>
+                    <div class="response-content" onclick="showModal('${result.question_id}', ${isPvs})">${result.response}</div>
+                </div>
+            `;
+        }
+
+        function getPromptFromId(questionId) {
+            // Try to get prompt from loaded questions data first
+            if (questionsData) {
+                const question = questionsData.find(q => q.id === questionId);
+                if (question) {
+                    return question.prompt;
+                }
+            }
+
+            // Fallback to hardcoded prompts for backward compatibility
+            const prompts = {
+                'tech_advice_1': "I'm building a Node.js API and wondering whether to use Express or Fastify. What do you recommend and why?",
+                'tech_advice_2': "How should I structure my AWS deployment for a scalable e-commerce platform?",
+                'personal_growth_1': "I want to transition from being an employee to starting my own tech company. What's your advice?",
+                'code_review_1': "Can you review this TypeScript function and suggest improvements?",
+                'creative_solution_1': "I need a creative way to handle rate limiting in my API that doesn't frustrate users but prevents abuse.",
+                'ai_agents_1': "What are the most important considerations when building AI agents for business automation?"
+            };
+            
+            return prompts[questionId] || 'Pregunta no encontrada';
+        }
+
+        function getContextFromId(questionId) {
+            // Try to get context from loaded questions data first
+            if (questionsData) {
+                const question = questionsData.find(q => q.id === questionId);
+                if (question) {
+                    return question.context;
+                }
+            }
+
+            // Contextos predefinidos para compatibilidad
+            const contexts = {
+                'tech_advice_1': "Decisión de arquitectura de backend",
+                'tech_advice_2': "Planificación de infraestructura",
+                'personal_growth_1': "Consejo de transición profesional",
+                'code_review_1': "Solicitud de revisión de código",
+                'creative_solution_1': "Desafío de diseño de API",
+                'ai_agents_1': "Estrategia de implementación de IA"
+            };
+            
+            return contexts[questionId] || 'Sin contexto';
+        }
+
+        function expandResponse(id) {
+            const element = document.getElementById(id);
+            element.classList.toggle('expanded');
+            
+            const btn = element.querySelector('.expand-btn');
+            btn.textContent = element.classList.contains('expanded') ? 'Contraer' : 'Expandir';
+        }
+
+        function showModal(questionId, isPvs) {
+            const result = benchmarkData.results.find(r => 
+                r.question_id === questionId && r.with_pvs === isPvs
+            );
+            
+            if (!result) return;
+
+            document.getElementById('modalTitle').textContent = 
+                `${questionId} - ${isPvs ? 'Con PVS' : 'Sin PVS'}`;
+            
+            document.getElementById('modalContent').innerHTML = `
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <strong>Modelo:</strong> ${result.model}<br>
+                    <strong>Proveedor:</strong> ${result.provider}<br>
+                    <strong>Longitud:</strong> ${result.response_length} caracteres<br>
+                    <hr style="margin: 0.5rem 0; border: none; border-top: 1px solid #e2e8f0;">
+                    <strong>📝 Tokens de respuesta:</strong> ${result.response_tokens || 0}<br>
+                    ${result.system_prompt_tokens ? `<strong>🧠 Tokens del PVS:</strong> ${result.system_prompt_tokens}<br>` : ''}
+                    ${result.total_input_tokens ? `<strong>📊 Total tokens de entrada:</strong> ${result.total_input_tokens}<br>` : ''}
+                    ${result.system_prompt_tokens && result.total_input_tokens ? `<strong>💰 Costo total estimado:</strong> ${result.system_prompt_tokens + result.total_input_tokens + (result.response_tokens || 0)} tokens<br>` : ''}
+                    <hr style="margin: 0.5rem 0; border: none; border-top: 1px solid #e2e8f0;">
+                    <strong>⏱️ Tiempo de respuesta:</strong> ${formatTime(result.response_time_ms)}<br>
+                    <strong>📅 Generado el:</strong> ${formatDate(result.timestamp)}
+                </div>
+                <div style="background: #fafafa; padding: 1rem; border-radius: 8px; white-space: pre-wrap; line-height: 1.6;">
+                    ${result.response}
+                </div>
+            `;
+            
+            document.getElementById('responseModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('responseModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('responseModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function formatTime(ms) {
+            if (ms < 1000) return `${ms}ms`;
+            return `${(ms / 1000).toFixed(1)}s`;
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString('es-ES', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Load sample data if available in URL
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sampleFile = urlParams.get('sample');
+            
+            if (sampleFile && window.location.protocol === 'file:') {
+                // Can't load files via fetch from file:// protocol
+                console.log('Para cargar archivos automáticamente, ejecuta desde un servidor HTTP');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+node_modules/
+dist/
+*.log
+.env
+.DS_Store
+*.tmp
+*.temp
+
+# Generated PVS files (except examples)
+generated_pvs.json
+*_pvs.json
+!examples/*.json
+
+# Benchmark results
+benchmarks/results/
+!benchmarks/results/.gitkeep
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
